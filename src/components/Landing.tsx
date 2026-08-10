@@ -5,9 +5,8 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { LeadForm } from "./LeadForm";
 import {
-  ConsultationToasts,
   LiveViewerBadge,
-  TotalHitsFooter,
+  SiteFooter,
   useSiteStats,
 } from "./LiveSocialProof";
 import { SITE } from "@/lib/config";
@@ -28,7 +27,6 @@ export function Landing() {
       <div className="orb orb-a" aria-hidden />
       <div className="orb orb-b" aria-hidden />
       <LiveViewerBadge liveViewers={liveViewers} />
-      <ConsultationToasts paused={formActive} />
 
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
         <motion.div
@@ -112,7 +110,7 @@ export function Landing() {
           </motion.section>
         </div>
 
-        <TotalHitsFooter totalHits={totalHits} />
+        <SiteFooter totalHits={totalHits} toastsPaused={formActive} />
       </div>
     </div>
   );
