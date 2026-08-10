@@ -1,0 +1,17 @@
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - OTP_FROM_EMAIL=${OTP_FROM_EMAIL:-noreply@notify.bestadvocate.in}
+      - LEADS_TO_EMAIL=${LEADS_TO_EMAIL:-help@bestadvocate.in}
+      - LEADS_REPLY_TO=${LEADS_REPLY_TO:-help@bestadvocate.in}
+      - SITE_URL=${SITE_URL:-https://bestadvocate.in}
+    volumes:
+      - bestadvocate_sessions:/app/.data
+    restart: unless-stopped
+
+volumes:
+  bestadvocate_sessions:
