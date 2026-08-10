@@ -1,5 +1,3 @@
-Dockerfile
-.dockerignore
 .git
 .gitignore
 .next
@@ -11,4 +9,3 @@ README.md
 !.env.example
 .data
 coverage
-*.md
