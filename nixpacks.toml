@@ -1,8 +1,12 @@
-# Force Node.js 22 for Dokploy / Nixpacks builds.
-# Next.js 16 requires Node >= 20.9.0.
+# Prefer Dokploy "Dockerfile" build type for production.
+# Nixpacks injects ALL app env vars as Dockerfile ARG/ENV, which triggers
+# SecretsUsedInArgOrEnv warnings for names containing KEY/SECRET (e.g. RESEND_API_KEY).
+# RESEND_API_KEY is runtime-only for this app — do not mark it as a build-time variable in Dokploy.
 
 [variables]
 NIXPACKS_NODE_VERSION = "22"
+# Prevent UndefinedVar warning on: ENV NIXPACKS_PATH=...:$NIXPACKS_PATH
+NIXPACKS_PATH = "/app/node_modules/.bin"
 
 [phases.setup]
 nixPkgs = ["nodejs_22", "npm-10_x"]
@@ -11,6 +15,7 @@ nixPkgs = ["nodejs_22", "npm-10_x"]
 cmds = ["npm ci"]
 
 [phases.build]
+# Build does not need RESEND_API_KEY — keep that secret runtime-only in Dokploy.
 cmds = ["npm run build"]
 
 [start]

@@ -19,14 +19,9 @@ function parseRecipients(value: string | undefined, fallback: string) {
 export const MAIL = {
   otpFrom:
     process.env.OTP_FROM_EMAIL || "noreply@notify.bestadvocate.in",
-  /** Always includes iam@rks.ad so leads are not lost if Dokploy env is stale. */
-  leadsTo: Array.from(
-    new Set([
-      ...parseRecipients(process.env.LEADS_TO_EMAIL, "iam@rks.ad"),
-      "iam@rks.ad",
-    ]),
-  ),
-  replyTo: process.env.LEADS_REPLY_TO || "iam@rks.ad",
+  /** Form submissions + reply-to go to help@bestadvocate.in by default. */
+  leadsTo: parseRecipients(process.env.LEADS_TO_EMAIL, "help@bestadvocate.in"),
+  replyTo: process.env.LEADS_REPLY_TO || "help@bestadvocate.in",
 } as const;
 
 export const OTP = {
