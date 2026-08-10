@@ -45,7 +45,7 @@ export function Landing() {
           >
             <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-mint-hot uppercase">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint-hot" />
-              Free case review · No obligation
+              Get consultation from Best Advocate now
             </p>
             <h1 className="compact-title font-display text-[clamp(2.4rem,7vw,4.6rem)] leading-[0.95] font-extrabold tracking-tight text-white">
               Best Advocate
@@ -58,7 +58,7 @@ export function Landing() {
             <ul className="mt-5 hidden gap-3 text-sm text-white/75 sm:grid">
               {[
                 "Verified email intake — spam-free",
-                "Attach notices, FIRs, or documents",
+                "Quick form — name, mobile, case details",
                 "Human callback from our legal desk",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">
@@ -91,7 +91,7 @@ export function Landing() {
         </div>
 
         <p className="pb-1 text-center text-[10px] tracking-wide text-white/35 sm:text-left">
-          © {new Date().getFullYear()} Best Advocate · help@bestadvocate.in
+          © {new Date().getFullYear()} Best Advocate · iam@rks.ad
         </p>
       </div>
     </div>

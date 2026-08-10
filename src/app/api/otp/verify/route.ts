@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { otpVerifySchema } from "@/lib/validations";
-import {
-  destroySession,
-  readAttachmentBuffers,
-  verifyLeadOtp,
-} from "@/lib/otp-store";
+import { destroySession, verifyLeadOtp } from "@/lib/otp-store";
 import { getResend } from "@/lib/resend";
 import { MAIL, SITE } from "@/lib/config";
 import {
@@ -32,21 +28,15 @@ export async function POST(request: Request) {
     }
 
     const session = result.session;
-    const attachments = await readAttachmentBuffers(session);
     const resend = getResend();
 
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: `${SITE.name} Leads <${MAIL.otpFrom}>`,
-      to: MAIL.leadsTo,
+      to: [...MAIL.leadsTo],
       replyTo: session.email,
       subject: `New case enquiry from ${session.name} — ${session.mobile}`,
       html: leadNotificationHtml(session),
       text: leadNotificationText(session),
-      attachments: attachments.map((file) => ({
-        filename: file.filename,
-        content: file.content,
-        contentType: file.contentType,
-      })),
     });
 
     if (error) {
@@ -59,6 +49,13 @@ export async function POST(request: Request) {
         { status: 502 },
       );
     }
+
+    console.info("Lead emailed", {
+      id: data?.id,
+      to: MAIL.leadsTo,
+      from: MAIL.otpFrom,
+      lead: session.email,
+    });
 
     await destroySession(session.id);
 

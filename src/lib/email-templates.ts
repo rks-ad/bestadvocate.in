@@ -83,7 +83,6 @@ export function leadNotificationHtml(session: LeadSession) {
     ["Name", session.name],
     ["Mobile", session.mobile],
     ["Email", session.email],
-    ["Attachments", String(session.attachments.length)],
     ["Submitted", new Date(session.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })],
   ]
     .map(
@@ -119,7 +118,6 @@ Name: ${session.name}
 Mobile: ${session.mobile}
 Email: ${session.email}
 Submitted: ${new Date(session.createdAt).toISOString()}
-Attachments: ${session.attachments.length}
 
 Case description:
 ${session.caseDescription}

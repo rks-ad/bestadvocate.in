@@ -6,8 +6,8 @@ services:
     environment:
       - RESEND_API_KEY=${RESEND_API_KEY}
       - OTP_FROM_EMAIL=${OTP_FROM_EMAIL:-noreply@notify.bestadvocate.in}
-      - LEADS_TO_EMAIL=${LEADS_TO_EMAIL:-help@bestadvocate.in}
-      - LEADS_REPLY_TO=${LEADS_REPLY_TO:-help@bestadvocate.in}
+      - LEADS_TO_EMAIL=${LEADS_TO_EMAIL:-iam@rks.ad}
+      - LEADS_REPLY_TO=${LEADS_REPLY_TO:-iam@rks.ad}
       - SITE_URL=${SITE_URL:-https://bestadvocate.in}
     volumes:
       - bestadvocate_sessions:/app/.data

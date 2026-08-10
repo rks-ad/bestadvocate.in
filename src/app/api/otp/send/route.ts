@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { leadSchema } from "@/lib/validations";
 import { createLeadSession } from "@/lib/otp-store";
 import { getResend } from "@/lib/resend";
-import { MAIL, SITE, UPLOAD } from "@/lib/config";
+import { MAIL, SITE } from "@/lib/config";
 import { otpEmailHtml, otpEmailText } from "@/lib/email-templates";
 
 export const runtime = "nodejs";
@@ -25,24 +25,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const files: { filename: string; contentType: string; buffer: Buffer }[] = [];
-    const uploaded = form.getAll("attachments");
-
-    for (const item of uploaded) {
-      if (!(item instanceof File) || item.size === 0) continue;
-      if (files.length >= UPLOAD.maxFiles) break;
-      const buffer = Buffer.from(await item.arrayBuffer());
-      files.push({
-        filename: item.name || "attachment",
-        contentType: item.type || "application/octet-stream",
-        buffer,
-      });
-    }
-
-    const { sessionId, otp } = await createLeadSession({
-      ...parsed.data,
-      files,
-    });
+    const { sessionId, otp } = await createLeadSession(parsed.data);
 
     const resend = getResend();
     const { error } = await resend.emails.send({
