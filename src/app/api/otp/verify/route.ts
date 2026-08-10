@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { otpVerifySchema } from "@/lib/validations";
 import { destroySession, verifyLeadOtp } from "@/lib/otp-store";
-import { getResend } from "@/lib/resend";
-import { MAIL, SITE } from "@/lib/config";
+import { sendLeadEmail } from "@/lib/resend";
+import { MAIL } from "@/lib/config";
 import {
   leadNotificationHtml,
   leadNotificationText,
@@ -28,13 +28,11 @@ export async function POST(request: Request) {
     }
 
     const session = result.session;
-    const resend = getResend();
 
-    const { data, error } = await resend.emails.send({
-      from: `${SITE.name} Leads <${MAIL.otpFrom}>`,
-      to: [...MAIL.leadsTo],
+    const { data, error } = await sendLeadEmail({
+      name: session.name,
+      mobile: session.mobile,
       replyTo: session.email,
-      subject: `New case enquiry from ${session.name} — ${session.mobile}`,
       html: leadNotificationHtml(session),
       text: leadNotificationText(session),
     });
@@ -44,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Email verified, but we could not deliver your enquiry. Please call us or try again.",
+            "Email verified, but we could not deliver your enquiry. Please try again in a moment.",
         },
         { status: 502 },
       );
@@ -53,7 +51,6 @@ export async function POST(request: Request) {
     console.info("Lead emailed", {
       id: data?.id,
       to: MAIL.leadsTo,
-      from: MAIL.otpFrom,
       lead: session.email,
     });
 
@@ -66,9 +63,16 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error("OTP verify failed:", err);
+    const message = err instanceof Error ? err.message : "Something went wrong";
+    const isConfig =
+      message.includes("RESEND_API_KEY") || message.includes("LEADS_TO_EMAIL");
     return NextResponse.json(
-      { error: "Something went wrong. Please try again." },
-      { status: 500 },
+      {
+        error: isConfig
+          ? "Email service is not configured yet."
+          : "Something went wrong. Please try again.",
+      },
+      { status: isConfig ? 503 : 500 },
     );
   }
 }

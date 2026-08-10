@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { leadSchema } from "@/lib/validations";
 import { createLeadSession } from "@/lib/otp-store";
-import { getResend } from "@/lib/resend";
-import { MAIL, SITE } from "@/lib/config";
+import { sendOtpEmail } from "@/lib/resend";
 import { otpEmailHtml, otpEmailText } from "@/lib/email-templates";
 
 export const runtime = "nodejs";
@@ -27,12 +26,10 @@ export async function POST(request: Request) {
 
     const { sessionId, otp } = await createLeadSession(parsed.data);
 
-    const resend = getResend();
-    const { error } = await resend.emails.send({
-      from: `${SITE.name} <${MAIL.otpFrom}>`,
+    const { data, error } = await sendOtpEmail({
       to: parsed.data.email,
-      replyTo: MAIL.replyTo,
-      subject: `${otp} is your ${SITE.name} verification code`,
+      name: parsed.data.name,
+      otp,
       html: otpEmailHtml(otp, parsed.data.name),
       text: otpEmailText(otp, parsed.data.name),
     });
@@ -45,6 +42,8 @@ export async function POST(request: Request) {
       );
     }
 
+    console.info("OTP emailed", { id: data?.id, to: parsed.data.email });
+
     return NextResponse.json({
       ok: true,
       sessionId,
@@ -55,7 +54,13 @@ export async function POST(request: Request) {
     console.error("OTP send failed:", err);
     const message =
       err instanceof Error ? err.message : "Something went wrong. Please try again.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const isConfig =
+      typeof message === "string" &&
+      (message.includes("RESEND_API_KEY") || message.includes("LEADS_TO_EMAIL"));
+    return NextResponse.json(
+      { error: isConfig ? "Email service is not configured yet." : message },
+      { status: isConfig ? 503 : 500 },
+    );
   }
 }
 

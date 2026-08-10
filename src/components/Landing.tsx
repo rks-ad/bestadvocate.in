@@ -1,17 +1,34 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { LeadForm } from "./LeadForm";
-import { LiveSocialProof } from "./LiveSocialProof";
+import {
+  ConsultationToasts,
+  LiveViewerBadge,
+  TotalHitsFooter,
+  useSiteStats,
+} from "./LiveSocialProof";
 import { SITE } from "@/lib/config";
 
 export function Landing() {
+  const { liveViewers, totalHits } = useSiteStats();
+  const [formActive, setFormActive] = useState(false);
+
+  const onFormFocus = useCallback(() => setFormActive(true), []);
+  const onFormBlur = useCallback((e: React.FocusEvent<HTMLElement>) => {
+    const next = e.relatedTarget as Node | null;
+    if (next && e.currentTarget.contains(next)) return;
+    setFormActive(false);
+  }, []);
+
   return (
     <div className="page-shell">
       <div className="orb orb-a" aria-hidden />
       <div className="orb orb-b" aria-hidden />
-      <LiveSocialProof />
+      <LiveViewerBadge liveViewers={liveViewers} />
+      <ConsultationToasts paused={formActive} />
 
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
         <motion.div
@@ -77,8 +94,11 @@ export function Landing() {
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.55, delay: 0.12 }}
-            className="lead-card compact-pad max-h-full overflow-auto p-4 sm:p-6"
+            className="lead-card compact-pad relative z-30 max-h-full overflow-auto p-4 sm:p-6"
             aria-label="Submit your case"
+            onFocusCapture={onFormFocus}
+            onBlurCapture={onFormBlur}
+            onPointerDownCapture={onFormFocus}
           >
             <div className="mb-4">
               <p className="text-[11px] font-bold tracking-[0.16em] text-teal uppercase">
@@ -92,9 +112,7 @@ export function Landing() {
           </motion.section>
         </div>
 
-        <p className="pb-1 text-center text-[10px] tracking-wide text-white/35 sm:text-left">
-          © {new Date().getFullYear()} Best Advocate · iam@rks.ad
-        </p>
+        <TotalHitsFooter totalHits={totalHits} />
       </div>
     </div>
   );

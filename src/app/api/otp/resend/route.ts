@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { refreshLeadOtp } from "@/lib/otp-store";
-import { getResend } from "@/lib/resend";
-import { MAIL, SITE } from "@/lib/config";
+import { sendOtpEmail } from "@/lib/resend";
 import { otpEmailHtml, otpEmailText } from "@/lib/email-templates";
 
 export const runtime = "nodejs";
@@ -21,17 +20,18 @@ export async function POST(request: Request) {
     const result = await refreshLeadOtp(parsed.data.sessionId);
     if (!result.ok) {
       return NextResponse.json(
-        { error: result.error, retryAfterSec: "retryAfterSec" in result ? result.retryAfterSec : undefined },
+        {
+          error: result.error,
+          retryAfterSec: "retryAfterSec" in result ? result.retryAfterSec : undefined,
+        },
         { status: 400 },
       );
     }
 
-    const resend = getResend();
-    const { error } = await resend.emails.send({
-      from: `${SITE.name} <${MAIL.otpFrom}>`,
+    const { data, error } = await sendOtpEmail({
       to: result.session.email,
-      replyTo: MAIL.replyTo,
-      subject: `${result.otp} is your ${SITE.name} verification code`,
+      name: result.session.name,
+      otp: result.otp,
       html: otpEmailHtml(result.otp, result.session.name),
       text: otpEmailText(result.otp, result.session.name),
     });
@@ -43,6 +43,8 @@ export async function POST(request: Request) {
         { status: 502 },
       );
     }
+
+    console.info("OTP resent", { id: data?.id, to: result.session.email });
 
     return NextResponse.json({
       ok: true,
