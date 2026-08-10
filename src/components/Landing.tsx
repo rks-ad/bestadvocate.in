@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { LeadForm } from "./LeadForm";
+import { LiveSocialProof } from "./LiveSocialProof";
 import { SITE } from "@/lib/config";
 
 export function Landing() {
@@ -10,13 +11,14 @@ export function Landing() {
     <div className="page-shell">
       <div className="orb orb-a" aria-hidden />
       <div className="orb orb-b" aria-hidden />
+      <LiveSocialProof />
 
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex items-center gap-3"
+          className="flex max-w-[calc(100%-9.5rem)] items-center gap-3 sm:max-w-none"
         >
           <Image
             src={SITE.logoUrl}
@@ -55,7 +57,7 @@ export function Landing() {
               Tell us what you need. Verify your email. Our team calls you back with clear next steps.
             </p>
 
-            <ul className="mt-5 hidden gap-3 text-sm text-white/75 sm:grid">
+            <ul className="mt-5 hidden gap-3 text-sm text-white/75 lg:grid">
               {[
                 "Verified email intake — spam-free",
                 "Quick form — name, mobile, case details",
