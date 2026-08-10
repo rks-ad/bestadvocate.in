@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 type Step = "form" | "otp" | "success";
@@ -14,9 +14,6 @@ type ApiOk = {
 
 type ApiErr = { error: string; retryAfterSec?: number };
 
-const ACCEPTED =
-  ".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,application/pdf,image/png,image/jpeg,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-
 const RESEND_COOLDOWN = 45;
 
 export function LeadForm() {
@@ -27,7 +24,6 @@ export function LeadForm() {
   const [sessionId, setSessionId] = useState("");
   const [emailHint, setEmailHint] = useState("");
   const [otp, setOtp] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -36,22 +32,13 @@ export function LeadForm() {
     return () => window.clearTimeout(timer);
   }, [cooldown]);
 
-  const fileLabel = useMemo(() => {
-    if (!files.length) return "Attach documents (optional)";
-    return `${files.length} file${files.length > 1 ? "s" : ""} attached`;
-  }, [files]);
-
   async function onSubmitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const form = e.currentTarget;
-      const data = new FormData(form);
-      data.delete("attachments");
-      for (const file of files) data.append("attachments", file);
-
+      const data = new FormData(e.currentTarget);
       const res = await fetch("/api/otp/send", { method: "POST", body: data });
       const json = (await res.json()) as ApiOk | ApiErr;
       if (!res.ok || !("ok" in json)) {
@@ -178,18 +165,6 @@ export function LeadForm() {
                 rows={3}
                 placeholder="What happened? City? How urgent is this?"
                 className="field min-h-[72px] resize-none"
-              />
-            </label>
-
-            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-ink/15 bg-white px-3.5 py-2.5 text-sm text-ink/80 transition hover:border-teal/50">
-              <span>{fileLabel}</span>
-              <span className="text-xs font-bold tracking-wide text-teal">Upload</span>
-              <input
-                type="file"
-                multiple
-                accept={ACCEPTED}
-                className="sr-only"
-                onChange={(e) => setFiles(Array.from(e.target.files || []).slice(0, 5))}
               />
             </label>
 

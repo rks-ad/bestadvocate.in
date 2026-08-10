@@ -2,14 +2,7 @@ import { createHash, randomInt } from "crypto";
 import { mkdir, writeFile, readFile, rm } from "fs/promises";
 import path from "path";
 import { nanoid } from "nanoid";
-import { OTP, UPLOAD } from "./config";
-
-export type StoredAttachment = {
-  filename: string;
-  contentType: string;
-  size: number;
-  path: string;
-};
+import { OTP } from "./config";
 
 export type LeadSession = {
   id: string;
@@ -23,7 +16,6 @@ export type LeadSession = {
   expiresAt: number;
   lastOtpSentAt: number;
   verified: boolean;
-  attachments: StoredAttachment[];
 };
 
 const memory = new Map<string, LeadSession>();
@@ -81,39 +73,11 @@ export async function createLeadSession(input: {
   mobile: string;
   email: string;
   caseDescription: string;
-  files: { filename: string; contentType: string; buffer: Buffer }[];
 }) {
   const id = nanoid(24);
   const otp = generateOtp();
-  const dir = path.join(STORE_DIR, id);
-  await mkdir(dir, { recursive: true });
-
-  let total = 0;
-  const attachments: StoredAttachment[] = [];
-
-  for (const file of input.files.slice(0, UPLOAD.maxFiles)) {
-    if (file.buffer.byteLength > UPLOAD.maxFileBytes) {
-      throw new Error(`File "${file.filename}" exceeds the 4MB limit`);
-    }
-    if (!(UPLOAD.allowedMime as readonly string[]).includes(file.contentType)) {
-      throw new Error(`File type not allowed: ${file.filename}`);
-    }
-    total += file.buffer.byteLength;
-    if (total > UPLOAD.maxTotalBytes) {
-      throw new Error("Total attachments exceed 10MB");
-    }
-    const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
-    const filePath = path.join(dir, safeName);
-    await writeFile(filePath, file.buffer);
-    attachments.push({
-      filename: safeName,
-      contentType: file.contentType,
-      size: file.buffer.byteLength,
-      path: filePath,
-    });
-  }
-
   const now = Date.now();
+
   const session: LeadSession = {
     id,
     name: input.name,
@@ -126,7 +90,6 @@ export async function createLeadSession(input: {
     expiresAt: now + OTP.ttlMs,
     lastOtpSentAt: now,
     verified: false,
-    attachments,
   };
 
   await persist(session);
@@ -198,14 +161,4 @@ export async function destroySession(sessionId: string) {
   } catch {
     // ignore cleanup errors
   }
-}
-
-export async function readAttachmentBuffers(session: LeadSession) {
-  return Promise.all(
-    session.attachments.map(async (file) => ({
-      filename: file.filename,
-      contentType: file.contentType,
-      content: await readFile(file.path),
-    })),
-  );
 }

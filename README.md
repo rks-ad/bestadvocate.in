@@ -5,9 +5,9 @@ Production-ready Next.js landing page for **bestadvocate.in**: case intake form,
 ## Features
 
 - Single-viewport lead page (no long scrolling marketing sections)
-- Lead form: Name, Mobile, Email, Case description, attachments
+- Lead form: Name, Mobile, Email, Case description
 - OTP email from `noreply@notify.bestadvocate.in` with **resend OTP**
-- Verified submissions emailed to `help@bestadvocate.in` (with attachments)
+- Verified submissions emailed to `iam@rks.ad` (no file attachments — keeps Resend delivery reliable)
 - SEO via metadata + JSON-LD only (keywords not shown on the page)
 - Docker image ready for Dokploy (Node 22)
 
@@ -35,8 +35,8 @@ Open [http://localhost:3000](http://localhost:3000).
 |---|---|---|
 | `RESEND_API_KEY` | `re_...` | Resend API key |
 | `OTP_FROM_EMAIL` | `noreply@notify.bestadvocate.in` | From address for OTP mail |
-| `LEADS_TO_EMAIL` | `help@bestadvocate.in` | Inbox for verified form submissions |
-| `LEADS_REPLY_TO` | `help@bestadvocate.in` | Reply-To on OTP emails |
+| `LEADS_TO_EMAIL` | `iam@rks.ad` | Inbox for verified form submissions (comma-separated OK) |
+| `LEADS_REPLY_TO` | `iam@rks.ad` | Reply-To on OTP emails |
 | `SITE_URL` | `https://bestadvocate.in` | Canonical URL for SEO |
 
 Ensure the Resend domain **notify.bestadvocate.in** is verified, with sending from `noreply@notify.bestadvocate.in`.
@@ -59,9 +59,9 @@ docker compose up -d --build
 
 ## Funnel
 
-1. Visitor submits case details (+ optional documents)
-2. OTP is emailed for verification
-3. On success, lead + attachments are forwarded to `help@bestadvocate.in`
+1. Visitor submits name, mobile, email, and case details
+2. OTP is emailed for verification (resend available)
+3. On success, the lead is emailed to `iam@rks.ad`
 4. Your team calls the client
 
 ## Logo

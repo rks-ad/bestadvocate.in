@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { LeadForm } from "./LeadForm";
+import { LiveSocialProof } from "./LiveSocialProof";
 import { SITE } from "@/lib/config";
 
 export function Landing() {
@@ -10,13 +11,14 @@ export function Landing() {
     <div className="page-shell">
       <div className="orb orb-a" aria-hidden />
       <div className="orb orb-b" aria-hidden />
+      <LiveSocialProof />
 
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex items-center gap-3"
+          className="flex max-w-[calc(100%-9.5rem)] items-center gap-3 sm:max-w-none"
         >
           <Image
             src={SITE.logoUrl}
@@ -45,7 +47,7 @@ export function Landing() {
           >
             <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-mint-hot uppercase">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint-hot" />
-              Free case review · No obligation
+              Get consultation from Best Advocate now
             </p>
             <h1 className="compact-title font-display text-[clamp(2.4rem,7vw,4.6rem)] leading-[0.95] font-extrabold tracking-tight text-white">
               Best Advocate
@@ -55,10 +57,10 @@ export function Landing() {
               Tell us what you need. Verify your email. Our team calls you back with clear next steps.
             </p>
 
-            <ul className="mt-5 hidden gap-3 text-sm text-white/75 sm:grid">
+            <ul className="mt-5 hidden gap-3 text-sm text-white/75 lg:grid">
               {[
                 "Verified email intake — spam-free",
-                "Attach notices, FIRs, or documents",
+                "Quick form — name, mobile, case details",
                 "Human callback from our legal desk",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">
@@ -91,7 +93,7 @@ export function Landing() {
         </div>
 
         <p className="pb-1 text-center text-[10px] tracking-wide text-white/35 sm:text-left">
-          © {new Date().getFullYear()} Best Advocate · help@bestadvocate.in
+          © {new Date().getFullYear()} Best Advocate · iam@rks.ad
         </p>
       </div>
     </div>
