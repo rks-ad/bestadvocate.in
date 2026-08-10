@@ -4,12 +4,12 @@ Production-ready Next.js landing page for **bestadvocate.in**: case intake form,
 
 ## Features
 
-- Attractive full-bleed hero with brand-first design and light motion
+- Single-viewport lead page (no long scrolling marketing sections)
 - Lead form: Name, Mobile, Email, Case description, attachments
-- OTP email from `noreply@notify.bestadvocate.in`
+- OTP email from `noreply@notify.bestadvocate.in` with **resend OTP**
 - Verified submissions emailed to `help@bestadvocate.in` (with attachments)
-- SEO metadata, sitemap, robots, and LegalService JSON-LD for Jaipur / Rajasthan / India advocate searches
-- Docker image ready for Dokploy
+- SEO via metadata + JSON-LD only (keywords not shown on the page)
+- Docker image ready for Dokploy (Node 22)
 
 ## Requirements
 

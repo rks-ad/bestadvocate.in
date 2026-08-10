@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 type Step = "form" | "otp" | "success";
@@ -12,24 +12,33 @@ type ApiOk = {
   message?: string;
 };
 
-type ApiErr = { error: string };
+type ApiErr = { error: string; retryAfterSec?: number };
 
 const ACCEPTED =
   ".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,application/pdf,image/png,image/jpeg,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-export function LeadForm({ variant = "hero" }: { variant?: "hero" | "panel" }) {
+const RESEND_COOLDOWN = 45;
+
+export function LeadForm() {
   const [step, setStep] = useState<Step>("form");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
   const [sessionId, setSessionId] = useState("");
   const [emailHint, setEmailHint] = useState("");
   const [otp, setOtp] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const dark = variant === "hero";
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
 
   const fileLabel = useMemo(() => {
-    if (!files.length) return "Add case documents (optional, max 5)";
-    return `${files.length} file${files.length > 1 ? "s" : ""} selected`;
+    if (!files.length) return "Attach documents (optional)";
+    return `${files.length} file${files.length > 1 ? "s" : ""} attached`;
   }, [files]);
 
   async function onSubmitForm(e: FormEvent<HTMLFormElement>) {
@@ -51,6 +60,7 @@ export function LeadForm({ variant = "hero" }: { variant?: "hero" | "panel" }) {
 
       setSessionId(json.sessionId || "");
       setEmailHint(json.emailHint || "");
+      setCooldown(RESEND_COOLDOWN);
       setStep("otp");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -82,49 +92,70 @@ export function LeadForm({ variant = "hero" }: { variant?: "hero" | "panel" }) {
     }
   }
 
+  async function onResendOtp() {
+    if (!sessionId || cooldown > 0 || resending) return;
+    setError("");
+    setResending(true);
+
+    try {
+      const res = await fetch("/api/otp/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const json = (await res.json()) as ApiOk | ApiErr;
+      if (!res.ok || !("ok" in json)) {
+        if ("retryAfterSec" in json && json.retryAfterSec) {
+          setCooldown(json.retryAfterSec);
+        }
+        throw new Error("error" in json ? json.error : "Unable to resend OTP");
+      }
+      setCooldown(RESEND_COOLDOWN);
+      setOtp("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to resend OTP");
+    } finally {
+      setResending(false);
+    }
+  }
+
   return (
     <div className="relative w-full">
       <AnimatePresence mode="wait">
         {step === "form" && (
           <motion.form
             key="form"
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.28 }}
             onSubmit={onSubmitForm}
-            className="grid gap-3"
+            className="compact-gap grid gap-2.5"
           >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="grid gap-1.5">
-                <span className={`text-xs tracking-[0.14em] uppercase ${dark ? "text-brass-soft/90" : "text-muted"}`}>
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              <label className="grid gap-1">
+                <span className="text-[11px] font-bold tracking-[0.12em] text-teal uppercase">
                   Full name
                 </span>
-                <input
-                  required
-                  name="name"
-                  autoComplete="name"
-                  placeholder="Your name"
-                  className={`field ${dark ? "field-dark" : ""}`}
-                />
+                <input required name="name" autoComplete="name" placeholder="Rahul Sharma" className="field" />
               </label>
-              <label className="grid gap-1.5">
-                <span className={`text-xs tracking-[0.14em] uppercase ${dark ? "text-brass-soft/90" : "text-muted"}`}>
-                  Mobile number
+              <label className="grid gap-1">
+                <span className="text-[11px] font-bold tracking-[0.12em] text-teal uppercase">
+                  Mobile
                 </span>
                 <input
                   required
                   name="mobile"
                   inputMode="tel"
                   autoComplete="tel"
-                  placeholder="10-digit mobile"
-                  className={`field ${dark ? "field-dark" : ""}`}
+                  placeholder="98765 43210"
+                  className="field"
                 />
               </label>
             </div>
 
-            <label className="grid gap-1.5">
-              <span className={`text-xs tracking-[0.14em] uppercase ${dark ? "text-brass-soft/90" : "text-muted"}`}>
+            <label className="grid gap-1">
+              <span className="text-[11px] font-bold tracking-[0.12em] text-teal uppercase">
                 Email ID
               </span>
               <input
@@ -132,62 +163,45 @@ export function LeadForm({ variant = "hero" }: { variant?: "hero" | "panel" }) {
                 type="email"
                 name="email"
                 autoComplete="email"
-                placeholder="you@example.com"
-                className={`field ${dark ? "field-dark" : ""}`}
+                placeholder="you@email.com"
+                className="field"
               />
             </label>
 
-            <label className="grid gap-1.5">
-              <span className={`text-xs tracking-[0.14em] uppercase ${dark ? "text-brass-soft/90" : "text-muted"}`}>
+            <label className="grid gap-1">
+              <span className="text-[11px] font-bold tracking-[0.12em] text-teal uppercase">
                 Case description
               </span>
               <textarea
                 required
                 name="caseDescription"
-                rows={4}
-                placeholder="Briefly explain your legal matter, city, and urgency..."
-                className={`field resize-y min-h-28 ${dark ? "field-dark" : ""}`}
+                rows={3}
+                placeholder="What happened? City? How urgent is this?"
+                className="field min-h-[72px] resize-none"
               />
             </label>
 
-            <label
-              className={`flex cursor-pointer items-center justify-between gap-3 rounded-[14px] border border-dashed px-4 py-3 transition ${
-                dark
-                  ? "border-white/20 bg-white/5 text-white/80 hover:border-brass-soft/50"
-                  : "border-navy/15 bg-white text-slate hover:border-brass/50"
-              }`}
-            >
-              <span className="text-sm">{fileLabel}</span>
-              <span className={`text-xs tracking-wide ${dark ? "text-brass-soft" : "text-brass"}`}>
-                Browse
-              </span>
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-ink/15 bg-white px-3.5 py-2.5 text-sm text-ink/80 transition hover:border-teal/50">
+              <span>{fileLabel}</span>
+              <span className="text-xs font-bold tracking-wide text-teal">Upload</span>
               <input
                 type="file"
                 multiple
                 accept={ACCEPTED}
                 className="sr-only"
-                onChange={(e) => {
-                  const next = Array.from(e.target.files || []).slice(0, 5);
-                  setFiles(next);
-                }}
+                onChange={(e) => setFiles(Array.from(e.target.files || []).slice(0, 5))}
               />
             </label>
 
             {error ? (
-              <p
-                className={`rounded-xl px-3 py-2 text-sm ${
-                  dark ? "bg-red-500/15 text-red-200" : "bg-red-50 text-red-700"
-                }`}
-              >
-                {error}
-              </p>
+              <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>
             ) : null}
 
-            <button type="submit" disabled={loading} className="btn-primary mt-1 w-full sm:w-auto">
-              {loading ? "Sending OTP..." : "Verify email & submit case"}
+            <button type="submit" disabled={loading} className="btn-cta mt-0.5">
+              {loading ? "Sending OTP..." : "Get free callback →"}
             </button>
-            <p className={`text-xs leading-relaxed ${dark ? "text-white/55" : "text-muted"}`}>
-              We verify your email with a one-time password, then our team calls you about your matter.
+            <p className="text-center text-[11px] leading-relaxed text-muted">
+              We verify your email with OTP, then our team calls you.
             </p>
           </motion.form>
         )}
@@ -195,21 +209,20 @@ export function LeadForm({ variant = "hero" }: { variant?: "hero" | "panel" }) {
         {step === "otp" && (
           <motion.form
             key="otp"
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.28 }}
             onSubmit={onVerifyOtp}
-            className="grid gap-4"
+            className="grid gap-3"
           >
             <div>
-              <p className={`font-display text-3xl ${dark ? "text-white" : "text-ink"}`}>
-                Enter OTP
-              </p>
-              <p className={`mt-2 text-sm ${dark ? "text-white/65" : "text-muted"}`}>
-                We sent a 6-digit code to <strong>{emailHint}</strong>
+              <p className="font-display text-2xl font-bold text-ink">Enter OTP</p>
+              <p className="mt-1 text-sm text-muted">
+                Code sent to <strong className="text-ink">{emailHint}</strong>
               </p>
             </div>
+
             <input
               required
               value={otp}
@@ -217,24 +230,33 @@ export function LeadForm({ variant = "hero" }: { variant?: "hero" | "panel" }) {
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="••••••"
-              className={`field text-center text-2xl tracking-[0.4em] ${dark ? "field-dark" : ""}`}
+              className="field text-center text-2xl tracking-[0.45em]"
             />
+
             {error ? (
-              <p
-                className={`rounded-xl px-3 py-2 text-sm ${
-                  dark ? "bg-red-500/15 text-red-200" : "bg-red-50 text-red-700"
-                }`}
-              >
-                {error}
-              </p>
+              <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>
             ) : null}
-            <div className="flex flex-wrap gap-3">
-              <button type="submit" disabled={loading || otp.length !== 6} className="btn-primary">
-                {loading ? "Verifying..." : "Confirm & submit"}
+
+            <button type="submit" disabled={loading || otp.length !== 6} className="btn-cta">
+              {loading ? "Submitting..." : "Verify & submit case"}
+            </button>
+
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <button
+                type="button"
+                className="link-quiet"
+                disabled={resending || cooldown > 0}
+                onClick={onResendOtp}
+              >
+                {resending
+                  ? "Resending..."
+                  : cooldown > 0
+                    ? `Resend OTP in ${cooldown}s`
+                    : "Resend OTP"}
               </button>
               <button
                 type="button"
-                className={`rounded-full px-4 py-2 text-sm ${dark ? "text-white/70 hover:text-white" : "text-muted hover:text-ink"}`}
+                className="text-muted hover:text-ink"
                 onClick={() => {
                   setStep("form");
                   setOtp("");
@@ -252,18 +274,22 @@ export function LeadForm({ variant = "hero" }: { variant?: "hero" | "panel" }) {
             key="success"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="grid gap-3 py-2 text-center sm:text-left"
+            className="grid place-items-center gap-3 py-6 text-center"
           >
-            <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full sm:mx-0 ${dark ? "bg-brass/20 text-brass-soft" : "bg-brass/15 text-brass"}`}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-mint/20 text-teal">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path
+                  d="M5 13l4 4L19 7"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
-            <p className={`font-display text-3xl ${dark ? "text-white" : "text-ink"}`}>
-              Enquiry received
-            </p>
-            <p className={`text-sm leading-relaxed ${dark ? "text-white/70" : "text-muted"}`}>
-              Thank you. Your case details are with our team. A Best Advocate associate will call you shortly to discuss the next steps.
+            <p className="font-display text-3xl font-bold text-ink">You're all set</p>
+            <p className="max-w-sm text-sm leading-relaxed text-muted">
+              Case received. Our team will call you shortly to discuss the next steps.
             </p>
           </motion.div>
         )}

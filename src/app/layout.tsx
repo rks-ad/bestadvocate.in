@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { Manrope, Syne } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/config";
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["600", "700", "800"],
   display: "swap",
 });
 
@@ -115,6 +115,18 @@ const jsonLd = {
       ],
       sameAs: [SITE.url],
       slogan: SITE.tagline,
+      knowsAbout: [
+        "Best advocate in Jaipur",
+        "Best advocate in Rajasthan",
+        "Best advocate in India",
+        "Best vakil nearby",
+        "Famous advocate nearby",
+        "Criminal lawyer",
+        "Civil advocate",
+        "Family lawyer",
+        "Property dispute advocate",
+        "High Court advocate Jaipur",
+      ],
     },
     {
       "@type": "WebSite",
@@ -126,38 +138,18 @@ const jsonLd = {
       potentialAction: {
         "@type": "CommunicateAction",
         name: "Submit case enquiry",
-        target: `${SITE.url}/#case-form`,
+        target: SITE.url,
       },
     },
     {
-      "@type": "FAQPage",
-      "@id": `${SITE.url}/#faq`,
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How do I contact the best advocate in Jaipur?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Submit your name, mobile, email, and case details on bestadvocate.in. After email OTP verification, our team calls you back.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Do you help with advocates across Rajasthan and India?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Best Advocate handles enquiries for Jaipur, Rajasthan, and clients seeking trusted legal support across India.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I attach case documents?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. You may attach PDFs, images, or Word documents with your enquiry so our team can review context before calling.",
-          },
-        },
-      ],
+      "@type": "WebPage",
+      "@id": `${SITE.url}/#webpage`,
+      url: SITE.url,
+      name: title,
+      description,
+      isPartOf: { "@id": `${SITE.url}/#website` },
+      about: { "@id": `${SITE.url}/#organization` },
+      inLanguage: "en-IN",
     },
   ],
 };
@@ -168,8 +160,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-IN" className={`${outfit.variable} ${cormorant.variable} h-full`}>
-      <body className="min-h-full antialiased">
+    <html lang="en-IN" className={`${manrope.variable} ${syne.variable} h-full overflow-hidden`}>
+      <body className="h-full overflow-hidden antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -21,6 +21,7 @@ export type LeadSession = {
   attempts: number;
   createdAt: number;
   expiresAt: number;
+  lastOtpSentAt: number;
   verified: boolean;
   attachments: StoredAttachment[];
 };
@@ -44,10 +45,9 @@ async function ensureDir() {
 async function persist(session: LeadSession) {
   memory.set(session.id, session);
   await ensureDir();
-  const { attachments, ...meta } = session;
   await writeFile(
     path.join(STORE_DIR, `${session.id}.json`),
-    JSON.stringify({ ...meta, attachments }),
+    JSON.stringify(session),
     "utf8",
   );
 }
@@ -113,6 +113,7 @@ export async function createLeadSession(input: {
     });
   }
 
+  const now = Date.now();
   const session: LeadSession = {
     id,
     name: input.name,
@@ -121,14 +122,44 @@ export async function createLeadSession(input: {
     caseDescription: input.caseDescription,
     otpHash: hashOtp(otp, id),
     attempts: 0,
-    createdAt: Date.now(),
-    expiresAt: Date.now() + OTP.ttlMs,
+    createdAt: now,
+    expiresAt: now + OTP.ttlMs,
+    lastOtpSentAt: now,
     verified: false,
     attachments,
   };
 
   await persist(session);
   return { sessionId: id, otp };
+}
+
+export async function refreshLeadOtp(sessionId: string) {
+  const session = await load(sessionId);
+  if (!session) {
+    return { ok: false as const, error: "Session expired. Please submit the form again." };
+  }
+  if (session.verified) {
+    return { ok: false as const, error: "This request was already submitted." };
+  }
+
+  const waitMs = OTP.resendCooldownMs - (Date.now() - (session.lastOtpSentAt || 0));
+  if (waitMs > 0) {
+    return {
+      ok: false as const,
+      error: `Please wait ${Math.ceil(waitMs / 1000)}s before requesting another OTP.`,
+      retryAfterSec: Math.ceil(waitMs / 1000),
+    };
+  }
+
+  const otp = generateOtp();
+  const now = Date.now();
+  session.otpHash = hashOtp(otp, session.id);
+  session.attempts = 0;
+  session.lastOtpSentAt = now;
+  session.expiresAt = now + OTP.ttlMs;
+  await persist(session);
+
+  return { ok: true as const, session, otp };
 }
 
 export async function verifyLeadOtp(sessionId: string, otp: string) {
