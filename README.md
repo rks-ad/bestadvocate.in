@@ -11,9 +11,16 @@ Production-ready Next.js landing page for **bestadvocate.in**: case intake form,
 - SEO metadata, sitemap, robots, and LegalService JSON-LD for Jaipur / Rajasthan / India advocate searches
 - Docker image ready for Dokploy
 
+## Requirements
+
+- **Node.js `>=20.9.0`** (recommended: **22**) — Next.js 16 will fail on Node 18
+- Version pins: `.nvmrc`, `.node-version`, `package.json` `engines`, and `nixpacks.toml`
+
 ## Quick start (local)
 
 ```bash
+# use Node 22 (nvm / fnm / asdf will read .nvmrc)
+nvm use
 cp .env.example .env.local
 # add your RESEND_API_KEY
 npm install
@@ -36,11 +43,15 @@ Ensure the Resend domain **notify.bestadvocate.in** is verified, with sending fr
 
 ## Dokploy deploy
 
+**Preferred:** build with the included **Dockerfile** (uses `node:22-alpine`).
+
 1. Create a new application from this Git repo.
-2. Use **Dockerfile** build (included).
+2. Set build type to **Dockerfile** (not Nixpacks default Node 18).
 3. Set the environment variables above.
 4. Expose port `3000` and map your domain `bestadvocate.in`.
 5. Optional: persist `/app/.data` if you want OTP session files to survive restarts (compose volume already defined).
+
+If you use **Nixpacks** instead, `nixpacks.toml` forces **Node 22**. Redeploy after pulling this change so the builder picks it up.
 
 ```bash
 docker compose up -d --build
