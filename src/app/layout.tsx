@@ -87,8 +87,12 @@ export const metadata: Metadata = {
   },
   category: "legal services",
   icons: {
-    icon: [{ url: "/bestadvocatelogo.png", type: "image/png" }],
-    apple: [{ url: "/bestadvocatelogo.png" }],
+    icon: [
+      { url: "/favicon.png", type: "image/png", sizes: "48x48" },
+      { url: "/android-icon-48x48.png", type: "image/png", sizes: "48x48" },
+    ],
+    apple: [{ url: "/android-icon-48x48.png", sizes: "48x48", type: "image/png" }],
+    shortcut: ["/favicon.png"],
   },
 };
 
