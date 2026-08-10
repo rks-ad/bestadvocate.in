@@ -19,8 +19,13 @@ function parseRecipients(value: string | undefined, fallback: string) {
 export const MAIL = {
   otpFrom:
     process.env.OTP_FROM_EMAIL || "noreply@notify.bestadvocate.in",
-  /** Comma-separated list supported, e.g. "iam@rks.ad,help@bestadvocate.in" */
-  leadsTo: parseRecipients(process.env.LEADS_TO_EMAIL, "iam@rks.ad"),
+  /** Always includes iam@rks.ad so leads are not lost if Dokploy env is stale. */
+  leadsTo: Array.from(
+    new Set([
+      ...parseRecipients(process.env.LEADS_TO_EMAIL, "iam@rks.ad"),
+      "iam@rks.ad",
+    ]),
+  ),
   replyTo: process.env.LEADS_REPLY_TO || "iam@rks.ad",
 } as const;
 
