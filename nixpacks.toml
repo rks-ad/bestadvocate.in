@@ -6,7 +6,6 @@
 [variables]
 NIXPACKS_NODE_VERSION = "22"
 # Prevent UndefinedVar warning on: ENV NIXPACKS_PATH=...:$NIXPACKS_PATH
-NIXPACKS_PATH = "/app/node_modules/.bin"
 
 [phases.setup]
 nixPkgs = ["nodejs_22", "npm-10_x"]
