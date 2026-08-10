@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && npm run prepare:standalone",
+    "prepare:standalone": "mkdir -p .next/standalone/.next && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static",
+    "start": "HOSTNAME=0.0.0.0 node .next/standalone/server.js",
     "lint": "eslint"
   },
   "dependencies": {
