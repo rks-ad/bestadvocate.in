@@ -7,7 +7,7 @@ Production-ready Next.js landing page for **bestadvocate.in**: case intake form,
 - Single-viewport lead page (no long scrolling marketing sections)
 - Lead form: Name, Mobile, Email, Case description
 - OTP email from `noreply@notify.bestadvocate.in` with **resend OTP**
-- Verified submissions emailed to `iam@rks.ad` (no file attachments — keeps Resend delivery reliable)
+- Verified submissions emailed to `help@bestadvocate.in`
 - SEO via metadata + JSON-LD only (keywords not shown on the page)
 - Docker image ready for Dokploy (Node 22)
 
@@ -33,25 +33,36 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Variable | Example | Purpose |
 |---|---|---|
-| `RESEND_API_KEY` | `re_...` | Resend API key |
+| `RESEND_API_KEY` | `re_...` | Resend API key (**runtime only**) |
 | `OTP_FROM_EMAIL` | `noreply@notify.bestadvocate.in` | From address for OTP mail |
-| `LEADS_TO_EMAIL` | `iam@rks.ad` | Inbox for verified form submissions (comma-separated OK) |
-| `LEADS_REPLY_TO` | `iam@rks.ad` | Reply-To on OTP emails |
+| `LEADS_TO_EMAIL` | `help@bestadvocate.in` | Inbox for verified form submissions |
+| `LEADS_REPLY_TO` | `help@bestadvocate.in` | Reply-To on OTP emails |
 | `SITE_URL` | `https://bestadvocate.in` | Canonical URL for SEO |
 
 Ensure the Resend domain **notify.bestadvocate.in** is verified, with sending from `noreply@notify.bestadvocate.in`.
 
 ## Dokploy deploy
 
-**Preferred:** build with the included **Dockerfile** (uses `node:22-alpine`).
+**Preferred:** build with the included **Dockerfile** (`node:22-alpine`).
 
 1. Create a new application from this Git repo.
-2. Set build type to **Dockerfile** (not Nixpacks default Node 18).
-3. Set the environment variables above.
+2. Set build type to **Dockerfile** (avoids Nixpacks baking `RESEND_API_KEY` into `ARG`/`ENV`).
+3. Set runtime environment variables:
+   - `RESEND_API_KEY`
+   - `LEADS_TO_EMAIL=help@bestadvocate.in`
+   - `LEADS_REPLY_TO=help@bestadvocate.in`
+   - `OTP_FROM_EMAIL=noreply@notify.bestadvocate.in`
+   - `SITE_URL=https://bestadvocate.in`
 4. Expose port `3000` and map your domain `bestadvocate.in`.
-5. Optional: persist `/app/.data` if you want OTP session files to survive restarts (compose volume already defined).
+5. Persist `/app/.data` so OTP sessions + total-hits counter survive restarts.
 
-If you use **Nixpacks** instead, `nixpacks.toml` forces **Node 22**. Redeploy after pulling this change so the builder picks it up.
+### About Nixpacks warnings
+
+If you stay on Nixpacks, Dokploy passes env vars into the generated Dockerfile as `ARG`/`ENV`. Names containing `KEY`/`SECRET` (like `RESEND_API_KEY`) trigger:
+
+`SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data`
+
+That is a **warning** from Docker BuildKit. `RESEND_API_KEY` is not required at build time for this app — keep it as a **runtime** env var only when using Dockerfile builds. `nixpacks.toml` also sets `NIXPACKS_PATH` to avoid the `UndefinedVar: $NIXPACKS_PATH` warning.
 
 ```bash
 docker compose up -d --build
@@ -61,7 +72,7 @@ docker compose up -d --build
 
 1. Visitor submits name, mobile, email, and case details
 2. OTP is emailed for verification (resend available)
-3. On success, the lead is emailed to `iam@rks.ad`
+3. On success, the lead is emailed to `help@bestadvocate.in`
 4. Your team calls the client
 
 ## Logo

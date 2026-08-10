@@ -106,7 +106,7 @@ const jsonLd = {
       url: SITE.url,
       logo: SITE.logoUrl,
       image: SITE.logoUrl,
-      email: "iam@rks.ad",
+      email: "help@bestadvocate.in",
       description,
       areaServed: [
         { "@type": "City", name: "Jaipur" },
