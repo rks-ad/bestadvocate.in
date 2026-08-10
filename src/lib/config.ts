@@ -6,7 +6,7 @@ export const SITE = {
     process.env.LOGO_URL ||
     "https://pub-c1e7ac8fa69c401eb3c7a8d699524095.r2.dev/bestadvocatelogo.png",
   phone: process.env.CONTACT_PHONE || "",
-  tagline: "Trusted legal guidance when you need it most",
+  tagline: "Get a callback from a trusted advocate",
 } as const;
 
 export const MAIL = {
@@ -20,6 +20,7 @@ export const OTP = {
   length: 6,
   ttlMs: 10 * 60 * 1000,
   maxAttempts: 5,
+  resendCooldownMs: 45 * 1000,
 } as const;
 
 export const UPLOAD = {
