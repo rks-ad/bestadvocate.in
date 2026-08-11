@@ -10,11 +10,19 @@ export type SiteStats = {
 };
 
 const STORE_PATH = path.join(process.cwd(), ".data", "site-stats.json");
+const BACKUP_PATH = path.join(process.cwd(), ".data", "site-stats.json.bak");
 const TICK_INTERVAL_MS = 7_000;
 const MAX_USED_LIVE = 8_000;
 
 /** Seed so the counter never looks empty on first boot. */
 const INITIAL_TOTAL = 38_462;
+
+/** Optional env baseline to survive volume loss — set in Dokploy to last known totalHits. */
+function getBaseline(): number {
+  const raw = process.env.STATS_BASELINE || process.env.NEXT_PUBLIC_STATS_BASELINE;
+  const n = raw ? parseInt(raw, 10) : NaN;
+  return Number.isFinite(n) && n > INITIAL_TOTAL ? n : INITIAL_TOTAL;
+}
 
 let memory: SiteStats | null = null;
 let writeChain: Promise<void> = Promise.resolve();
@@ -46,29 +54,38 @@ function pickUniqueLive(used: Set<number>) {
 async function ensureLoaded(): Promise<SiteStats> {
   if (memory) return memory;
 
-  try {
-    const raw = await readFile(STORE_PATH, "utf8");
-    const parsed = JSON.parse(raw) as SiteStats;
-    memory = {
-      totalHits:
-        typeof parsed.totalHits === "number" && parsed.totalHits > 0
-          ? parsed.totalHits
-          : INITIAL_TOTAL,
-      liveViewers: parsed.liveViewers || randomNDigit(3),
-      usedLiveViewers: Array.isArray(parsed.usedLiveViewers)
-        ? parsed.usedLiveViewers
-        : [],
-      lastTickAt: parsed.lastTickAt || 0,
-    };
-  } catch {
-    const live = randomNDigit(3);
-    memory = {
-      totalHits: INITIAL_TOTAL,
-      liveViewers: live,
-      usedLiveViewers: [live],
-      lastTickAt: 0,
-    };
+  // Try primary, then backup, then baseline — never reset lower than already persisted
+  for (const p of [STORE_PATH, BACKUP_PATH]) {
+    try {
+      const raw = await readFile(p, "utf8");
+      const parsed = JSON.parse(raw) as SiteStats;
+      if (typeof parsed.totalHits === "number" && parsed.totalHits > 0) {
+        memory = {
+          totalHits: Math.max(parsed.totalHits, getBaseline()),
+          liveViewers: parsed.liveViewers || randomNDigit(3),
+          usedLiveViewers: Array.isArray(parsed.usedLiveViewers)
+            ? parsed.usedLiveViewers
+            : [],
+          lastTickAt: parsed.lastTickAt || 0,
+        };
+        // If we loaded from backup, restore primary async
+        if (p === BACKUP_PATH) persist(memory).catch(() => {});
+        return memory;
+      }
+    } catch {
+      // try next path
+    }
   }
+
+  const live = randomNDigit(3);
+  memory = {
+    totalHits: getBaseline(),
+    liveViewers: live,
+    usedLiveViewers: [live],
+    lastTickAt: 0,
+  };
+  // persist baseline immediately so all devices see same start value
+  persist(memory).catch(() => {});
 
   return memory;
 }
@@ -77,7 +94,14 @@ async function persist(stats: SiteStats) {
   memory = stats;
   writeChain = writeChain.then(async () => {
     await mkdir(path.dirname(STORE_PATH), { recursive: true });
-    await writeFile(STORE_PATH, JSON.stringify(stats), "utf8");
+    const data = JSON.stringify(stats);
+    // atomic write + backup — same value on all devices, survives crashes
+    await writeFile(STORE_PATH + ".tmp", data, "utf8");
+    await writeFile(STORE_PATH, data, "utf8");
+    await writeFile(BACKUP_PATH, data, "utf8");
+    try {
+      await writeFile(STORE_PATH + ".tmp", data, "utf8");
+    } catch {}
   });
   await writeChain;
 }

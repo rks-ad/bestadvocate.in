@@ -27,6 +27,9 @@ COPY --from=builder /app/.next/static ./.next/static
 
 RUN mkdir -p /app/.data/sessions && chown -R nextjs:nodejs /app/.data
 
+# Same value on all devices — stats are server-global, persisted via volume
+VOLUME ["/app/.data"]
+
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]
