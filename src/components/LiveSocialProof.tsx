@@ -76,7 +76,6 @@ export function LiveViewerBadge({ liveViewers }: { liveViewers: number | null })
   );
 }
 
-<<<<<<< HEAD
 export function SiteFooter({
   totalHits,
   toastsPaused,
@@ -102,24 +101,6 @@ export function SiteFooter({
 }
 
 function ConsultationToasts({ paused }: { paused: boolean }) {
-=======
-export function TotalHitsFooter({ totalHits }: { totalHits: number | null }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pb-1 text-[10px] tracking-wide text-white/40">
-      <p>© {new Date().getFullYear()} Best Advocate</p>
-      <p className="inline-flex items-center gap-1.5 text-mint/80">
-        <span className="tracking-[0.12em] uppercase">Total hits till date</span>
-        <AnimatedCount
-          value={totalHits}
-          className="font-display text-sm font-bold text-mint-hot"
-        />
-      </p>
-    </div>
-  );
-}
-
-export function ConsultationToasts({ paused }: { paused: boolean }) {
->>>>>>> origin/main
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const namesRef = useRef<string[]>([]);
   const nameIndexRef = useRef(0);
@@ -147,7 +128,6 @@ export function ConsultationToasts({ paused }: { paused: boolean }) {
 
     function pushToast() {
       if (pausedRef.current || cancelled) return;
-<<<<<<< HEAD
       const name = nextName();
       if (!name) return;
       const id = `${Date.now()}-${nameIndexRef.current}`;
@@ -156,19 +136,6 @@ export function ConsultationToasts({ paused }: { paused: boolean }) {
 
     const first = window.setTimeout(pushToast, 3500);
     const interval = window.setInterval(pushToast, 8000);
-=======
-      if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
-        return;
-      }
-      const name = nextName();
-      if (!name) return;
-      const id = `${Date.now()}-${nameIndexRef.current}`;
-      setToasts((prev) => [{ id, name }, ...prev].slice(0, 2));
-    }
-
-    const first = window.setTimeout(pushToast, 4500);
-    const interval = window.setInterval(pushToast, 9000);
->>>>>>> origin/main
 
     return () => {
       cancelled = true;
@@ -181,7 +148,6 @@ export function ConsultationToasts({ paused }: { paused: boolean }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }
 
-<<<<<<< HEAD
   return (
     <div className="pointer-events-none mb-2 min-h-0">
       <AnimatePresence initial={false}>
@@ -189,16 +155,6 @@ export function ConsultationToasts({ paused }: { paused: boolean }) {
           toasts.map((toast) => (
             <SwipeToast key={toast.id} toast={toast} onDismiss={dismissToast} />
           ))}
-=======
-  if (paused) return null;
-
-  return (
-    <div className="pointer-events-none absolute bottom-24 left-4 z-20 hidden w-[min(100%-2rem,260px)] flex-col gap-2 lg:flex">
-      <AnimatePresence initial={false}>
-        {toasts.map((toast) => (
-          <SwipeToast key={toast.id} toast={toast} onDismiss={dismissToast} />
-        ))}
->>>>>>> origin/main
       </AnimatePresence>
     </div>
   );
@@ -214,28 +170,19 @@ function SwipeToast({
   const x = useMotionValue(0);
 
   function onDragEnd(_: unknown, info: PanInfo) {
-<<<<<<< HEAD
     if (Math.abs(info.offset.x) > 70 || Math.abs(info.velocity.x) > 400) {
-=======
-    if (Math.abs(info.offset.x) > 80 || Math.abs(info.velocity.x) > 450) {
->>>>>>> origin/main
       onDismiss(toast.id);
     }
   }
 
   useEffect(() => {
-<<<<<<< HEAD
     const timer = window.setTimeout(() => onDismiss(toast.id), 5000);
-=======
-    const timer = window.setTimeout(() => onDismiss(toast.id), 5500);
->>>>>>> origin/main
     return () => window.clearTimeout(timer);
   }, [toast.id, onDismiss]);
 
   return (
     <motion.div
       layout
-<<<<<<< HEAD
       initial={{ opacity: 0, y: 12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -246,18 +193,6 @@ function SwipeToast({
       style={{ x }}
       onDragEnd={onDragEnd}
       className="pointer-events-auto mx-auto w-full max-w-md cursor-grab active:cursor-grabbing rounded-xl border border-white/15 bg-white/95 px-3 py-2 text-ink shadow-[0_10px_28px_rgba(0,0,0,0.25)] backdrop-blur sm:mx-0"
-=======
-      initial={{ opacity: 0, x: -28, scale: 0.96 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: -48, scale: 0.94 }}
-      transition={{ type: "spring", stiffness: 380, damping: 28 }}
-      drag="x"
-      dragConstraints={{ left: -160, right: 24 }}
-      dragElastic={0.18}
-      style={{ x }}
-      onDragEnd={onDragEnd}
-      className="pointer-events-auto cursor-grab active:cursor-grabbing rounded-2xl border border-white/10 bg-white/95 px-3.5 py-3 text-ink shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur"
->>>>>>> origin/main
     >
       <div className="flex items-center gap-2.5">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal/15 text-xs font-bold text-teal">
@@ -272,10 +207,6 @@ function SwipeToast({
           <p className="text-[11px] leading-snug text-muted">
             booked a consultation just now · swipe to dismiss
           </p>
-<<<<<<< HEAD
-=======
-          <p className="mt-1 text-[10px] tracking-wide text-teal/70">Swipe to dismiss</p>
->>>>>>> origin/main
         </div>
       </div>
     </motion.div>
