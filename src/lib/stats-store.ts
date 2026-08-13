@@ -143,7 +143,7 @@ async function getSiteStatsUnsafe(options?: { tick?: boolean }) {
   const nextLive = pickUniqueLive(used);
   used.add(nextLive);
 
-  const increment = randomNDigit(randomDigitLength());
+  const increment = nextLive; // synced with live on site
   const nextUsed = [...used];
   if (nextUsed.length > MAX_USED_LIVE) {
     nextUsed.splice(0, nextUsed.length - MAX_USED_LIVE);
