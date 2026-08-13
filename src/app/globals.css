@@ -38,7 +38,8 @@ html,
 body {
   height: 100%;
   margin: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
@@ -58,9 +59,10 @@ body {
 
 .page-shell {
   position: relative;
-  height: 100dvh;
+  min-height: 100dvh;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
+  overflow-x: hidden;
   isolation: isolate;
   background:
     radial-gradient(900px 520px at 12% 18%, rgba(25, 211, 176, 0.28), transparent 58%),

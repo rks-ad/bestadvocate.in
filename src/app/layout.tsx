@@ -245,8 +245,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-IN" className={`${manrope.variable} ${syne.variable} h-full overflow-hidden`}>
-      <body className="h-full overflow-hidden antialiased">
+    <html lang="en-IN" className={`${manrope.variable} ${syne.variable} h-full`}>
+      <body className="h-full antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
