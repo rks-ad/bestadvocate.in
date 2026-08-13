@@ -149,7 +149,7 @@ function ConsultationToasts({ paused }: { paused: boolean }) {
   }
 
   return (
-    <div className="pointer-events-none mb-2 min-h-0">
+    <div className="pointer-events-none absolute bottom-full left-0 right-0 z-10 mb-2">
       <AnimatePresence initial={false}>
         {!paused &&
           toasts.map((toast) => (
